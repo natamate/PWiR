@@ -1,52 +1,52 @@
-%generacja losowych randomow
-%budujemy bst
-%te same warunki co w zadaniu w adzie
-%zwyczajna - izi
-%wyjatkowa - rzuca wyjatek - jak znajdziemy, wtedy nie musi cofac po kolei requrencji tylko wyjatek odrazu wraca
-%ad w programie, 2. wyjatek powiazany z procesem - tzw exit, 3. through - wucany do komunikacji
-% http://learnyousomeerlang.com/static/erlang/tree.erl
-
 -module(lab5).
-%-compile([export_all]).
--export([insertTree/2, isInTree/2, isInTreeThrowing/2, insertListToTree/2, preorder/1, inorder/1, postorder/1, insertXRandom/2]).
+-compile([export_all]).
 
+% wstawianie elementu do drzewa
+insertTree(Value, nil) -> {Value, nil, nil};
+insertTree(Value, {Data, Left, Right}) when Value < Data -> {Data, insertTree(Value, Left), Right};
+insertTree(Value, {Data, Left, Right}) when Value > Data -> {Data, Left, insertTree(Value, Right)};
+insertTree(_, {Data, Left, Right}) -> {Data, Left, Right}.
 
-insertTree(Data,'nil') -> {Data,'nil','nil'};
-insertTree(Data, {Val,Left,Right}) when Data < Val -> {Val,insertTree(Data,Left),Right};
-insertTree(Data, {Val,Left,Right}) when Data > Val -> {Val,Left,insertTree(Data,Right)};
-insertTree(_, {Val,Left,Right}) -> {Val,Left,Right}.
-
-isInTree(_,'nil') -> false;
-isInTree(Data,{Val,_,_}) when Data == Val -> true;
-isInTree(Data,{Val,Left,_}) when Data < Val -> isInTree(Data,Left);
-isInTree(Data,{Val,_,Right}) when Data > Val -> isInTree(Data,Right).
-
-isInTreeExc(_,'nil') -> throw(false);
-isInTreeExc(Data,{Val,_,_}) when Data == Val -> throw(true);
-isInTreeExc(Data,{Val,Left,_}) when Data < Val -> isInTree(Data,Left);
-isInTreeExc(Data,{Val,_,Right}) when Data > Val -> isInTree(Data,Right).
-
-isInTreeThrowing(Data,Tree) ->
-  try
-    isInTreeExc(Data,Tree)
-  catch
-    throw:true -> 'true';
-    throw:false -> 'false'
-  end.
-
-insertListToTree([],Tree) -> Tree;
-insertListToTree([H|T],Tree) -> insertListToTree(T,insertTree(H,Tree)).
-
-preorder('nil') -> [];
-preorder({Val,Left,Right}) -> [Val]++preorder(Left)++preorder(Right).
-
-inorder('nil') -> [];
-inorder({Val,Left,Right}) -> inorder(Left)++[Val]++inorder(Right).
-
-postorder('nil') -> [];
-postorder({Val,Left,Right}) -> postorder(Left)++postorder(Right)++[Val].
-
+%generacja losowego drzewa (liczby)
 insertRandom(Tree) -> insertTree(rand:uniform(99),Tree).
 
-insertXRandom(0,Tree) -> Tree;
-insertXRandom(N,Tree) -> insertXRandom(N-1,insertRandom(Tree)).
+insertXRandom(Tree, 0) -> Tree;
+insertXRandom(Tree, N) -> insertXRandom(insertRandom(Tree), N-1).
+
+%generacja drzewa z listy
+listToTree([],Tree) -> Tree;
+listToTree([H|T], Tree) -> listToTree(T, insertTree(H,Tree)).
+
+%zwinięcie drzewa do listy (3 dowolne metody)
+
+preOrder(nil) -> [];
+preOrder({Data,Left,Right}) -> [Data] ++ preOrder(Left) ++ preOrder(Right).
+
+inOrder(nil) -> [];
+inOrder({Data,Left,Right}) ->  inOrder(Left) ++ [Data] ++ inOrder(Right).
+
+postOrder(nil) -> [];
+postOrder({Data,Left,Right}) -> postOrder(Left) ++ postOrder(Right) ++ [Data].
+
+%szukanie elementu w drzewie (wersja "zwyczajna" i wersja "wyjątkowa")
+searchX(_, nil) -> false;
+searchX(X, {X, _, _}) -> true;
+searchX(X, {OtherX, Left, _}) when X < OtherX -> searchX(X, Left);
+searchX(X, {OtherX, _, Right}) when X > OtherX -> searchX(X, Right).
+
+ifTreeContains(_, nil) -> throw(false);
+ifTreeContains(X, {X, _, _}) -> throw(true);
+ifTreeContains(X, {OtherX, Left, _}) when X < OtherX -> ifTreeContains(X, Left);
+ifTreeContains(X, {OtherX, _, Right}) when X > OtherX -> ifTreeContains(X, Right).
+
+searchXTry(X, Tree) ->
+	try 
+		ifTreeContains(X, Tree)
+	catch
+		throw:true -> 'true';
+		throw:false -> 'false'
+	end.
+
+
+
+
