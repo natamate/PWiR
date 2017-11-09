@@ -47,6 +47,14 @@ searchXTry(X, Tree) ->
 		throw:false -> 'false'
 	end.
 
+removeX(X, nil, _) -> throw(false);
+removeX(X, {X,Left,Right}, Others) -> listToTree((preOrder({nil,Left,Right}) ++ Others), nil);
+removeX(X, {OtherX,Left,Right}, Others) when X < OtherX -> removeX(X, Left, Others ++ preOrder(Right));
+removeX(X, {OtherX,Left,Right}, Others) when X > OtherX -> removeX(X, Right, Others ++ preOrder(Left)).
 
+treeSize(nil) -> 0;
+treeSize({_, nil, nil}) -> 1;
+treeSize({Data, Left, Right}) -> 1 + treeSize(Left) + treeSize(Right).
+			     
 
 
